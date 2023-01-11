@@ -13,7 +13,7 @@ import (
 
 var DB *gorm.DB
 
-func ConnectDatabase(){
+func ConnectDatabase()(*gorm.DB){
 
 	var err error
 	err = godotenv.Load(".env")
@@ -39,7 +39,12 @@ func ConnectDatabase(){
 		fmt.Println("We are connected to the database ", Dbdriver)
 	}
 
+	return DB
+}
+
+func MigrateModels(){
+
 	DB.AutoMigrate(&User{})
-	log.Println(DB)
+
 }
 

@@ -10,7 +10,7 @@ import (
 )
 
 type LoginInput struct {
-	Username string `json:"username" binding:"required"`
+	Email string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
 }
 
@@ -48,11 +48,11 @@ func Login(c *gin.Context){
 		return
 	}
 
-	token, err := models.LoginCheck(input.Username, input.Password)
+	token, err := models.LoginCheck(input.Email, input.Password)
 
 	if err != nil {
 		data := make(map[string]string)
-		data["error"] =  "username or password is incorrect."
+		data["error"] =  "email or password is incorrect."
 		Response.ErrorResponse(c,http.StatusBadRequest,data)
 		return
 	}
@@ -65,13 +65,21 @@ func Login(c *gin.Context){
 
 
 type RegisterInput struct {
-	Username string `json:"username" binding:"required"`
+	Email string `json:"email" binding:"email,required"`
 	Password string `json:"password" binding:"required"`
+	ConfirmPassword string `json:"confirm_password" binding:"required"`
 }
 
 func Register(c *gin.Context){
 
 	var input RegisterInput
+
+	if input.ConfirmPassword != input.Password{
+		data := make(map[string]string)
+		data["error"] =  "confirm_password is not correct"
+		Response.ErrorResponse(c,http.StatusBadRequest,data)
+		return
+	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
 
@@ -83,7 +91,7 @@ func Register(c *gin.Context){
 
 	u := models.User{}
 
-	u.Username = input.Username
+	u.Email = input.Email
 	u.Password = input.Password
 
 	_,err := u.SaveUser()
@@ -99,7 +107,7 @@ func Register(c *gin.Context){
 
 	if err != nil {
 		data := make(map[string]string)
-		data["error"] =  "username or password is incorrect."
+		data["error"] =  "email or password is incorrect."
 		Response.ErrorResponse(c,http.StatusBadRequest,data)
 		return
 	}

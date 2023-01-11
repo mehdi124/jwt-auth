@@ -4,15 +4,20 @@ import (
 	"html"
 	"strings"
 	"jwt-auth/utils/token"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 	"errors"
+	"time"
 )
 
 type User struct {
-	gorm.Model
-	Username string `gorm:"size:255;not null;unique" json:"username"`
+	ID uint `gorm:"primaryKey;autoIncrement"`
+	Email string `gorm:"size:255;not null;unique" json:"email"`
 	Password string `gorm:"size:255;not null;" json:"password"`
+	Status bool `gorm:"default:false"`
+	EmailVerifiedAt time.Time `gorm:"index"`
+	CreatedAt time.Time `gorm:"autoCreateTime"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime"`
+	DeletedAt time.Time `gorm:"index;null"`
 }
 
 func (u *User) SaveUser() (*User, error) {
@@ -24,9 +29,9 @@ func (u *User) SaveUser() (*User, error) {
 		return &User{},err
 	}
 
-	ConnectDatabase()
+	db := ConnectDatabase()
 
-	err = DB.Select("Username","Password").Create(&u).Error
+	err = db.Select("Email","Password").Create(&u).Error
 	if err != nil {
 		return &User{}, err
 	}
@@ -42,8 +47,8 @@ func (u *User) BeforeSave() error {
 		return err
 	}
 	u.Password = string(hashedPassword)
-	//remove spaces in username
-	u.Username = html.EscapeString(strings.TrimSpace(u.Username))
+	//remove spaces in email
+	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
 	return nil
 
 }
@@ -52,11 +57,11 @@ func VerifyPassword(password,hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 }
 
-func LoginCheck(username , password string) (string,error){
+func LoginCheck(email , password string) (string,error){
 
 	u := User{}
 
-	err := DB.Model(User{}).Where("username=?",username).Take(&u).Error
+	err := DB.Model(User{}).Where("email=?",email).Take(&u).Error
 	if err != nil{
 		return "", err
 	}
@@ -93,4 +98,9 @@ func GetUserByID(uid uint) (User,error) {
 
 func (u *User) PrepareGive(){
 	u.Password = ""
+}
+
+
+func Drop(){
+
 }
