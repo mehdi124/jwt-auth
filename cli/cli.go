@@ -12,7 +12,7 @@ type CLI struct{}
 
 func (cli *CLI) printUsage() {
 	fmt.Println("Usage:")
-	fmt.Println("  migrate -db FRESH - Fresh migrations")
+	fmt.Println("  migrate -db FRESH - Fresh migrate")
 	fmt.Println("  serve -port PORT - Port at input port")
 }
 

@@ -7,51 +7,52 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"errors"
 	"time"
+	"github.com/google/uuid"
 )
 
 type User struct {
-	ID uint `gorm:"primaryKey;autoIncrement"`
+	ID  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
 	Email string `gorm:"size:255;not null;unique" json:"email"`
 	Password string `gorm:"size:255;not null;" json:"password"`
 	Status bool `gorm:"default:false"`
-	EmailVerifiedAt time.Time `gorm:"index"`
+	EmailVerifiedAt time.Time
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 	DeletedAt time.Time `gorm:"index;null"`
 }
 
-func (u *User) SaveUser() (*User, error) {
-
-	var err error
-
-	err = u.BeforeSave()
-	if err != nil{
-		return &User{},err
-	}
-
-	db := ConnectDatabase()
-
-	err = db.Select("Email","Password").Create(&u).Error
-	if err != nil {
-		return &User{}, err
-	}
-
-	return u, nil
+type LoginInput struct {
+	Email string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 
-func (u *User) BeforeSave() error {
-
-	//turn password into hash
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password),bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	u.Password = string(hashedPassword)
-	//remove spaces in email
-	u.Email = html.EscapeString(strings.TrimSpace(u.Email))
-	return nil
-
+type RegisterInput struct {
+	Email string `json:"email" binding:"email,required"`
+	Password string `json:"password" binding:"required"`
+	ConfirmPassword string `json:"confirm_password" binding:"required"`
 }
+
+type VerifyInput struct {
+	Email string `json:"email" binding:"required"`
+	Code string `json:"code" binding:"required"`
+}
+
+type UserResponse struct {
+	ID        uuid.UUID `json:"id,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	Role      string    `json:"role,omitempty"`
+	Photo     string    `json:"photo,omitempty"`
+	Provider  string    `json:"provider"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+
+//TODO transfer functions to auth service
+
+
+
 
 func VerifyPassword(password,hashedPassword string) error {
 	return bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 )
 
@@ -16,10 +16,10 @@ var DB *gorm.DB
 func ConnectDatabase()(*gorm.DB){
 
 	var err error
-	err = godotenv.Load(".env")
+	err = godotenv.Load("app.env")
 
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		log.Fatalf("Error loading app.env file")
 	}
 
 	Dbdriver := os.Getenv("DB_DRIVER")
