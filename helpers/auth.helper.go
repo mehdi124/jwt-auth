@@ -1,14 +1,15 @@
 package helpers
 
 import (
-	"jwt-auth/initializers"
+	"html"
+	"time"
+	"strings"
 	"jwt-auth/models"
 	"jwt-auth/utils/email"
 	"jwt-auth/utils/password"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 	"jwt-auth/utils/redis"
-	"github.com/thanhpk/randstr"
-	"jwt-auth/utils/encode"
+	"math/rand"
 	"jwt-auth/utils/token"
 )
 
@@ -22,7 +23,7 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 	user := models.User{}
 	user.Password = string(hashedPassword)
 	//remove spaces in email
-	user.Email = html.EscapeString(strings.TrimSpace(u.Email))
+	user.Email = html.EscapeString(strings.TrimSpace(user.Email))
 
 
 	err = DB.Select("Email","Password").Create(&user).Error
@@ -30,19 +31,16 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 		return "",err
 	}
 
-	config, _ := initializers.LoadConfig(".")
 
 	// Generate Verification Code
-	code := randstr.String(20)
-
-	verification_code := encode.Encode(code)
-	redis.StoreVerificationCode(user.ID,verification_code)
+	code := string(rand.Intn(999999 - 100000) + 100000)
+	redis.StoreVerificationCode(user.ID.String(),code)
 
 	// ? Send Email
-	emailData := utils.EmailData{
-		URL:       config.ClientOrigin + "/verifyemail/" + code,
-		FirstName: user.Email,
-		Subject:   "Your account verification code",
+	emailData := email.EmailData{
+		Code:      code,
+		Email: user.Email,
+		Subject:   "verification code",
 	}
 
 	email.SendEmail(&user, &emailData)
@@ -52,13 +50,13 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 	return message,nil
 }
 
-func Verify(DB *gorm.DB,user *models.User,payload *models.VerifyInput) (string,error) {
-	redis.CheckVerificationCode(payload.Email,payload.Code)
+func Verify(DB *gorm.DB,user *models.User,code string) (string,error) {
+	redis.CheckVerificationCode(user.ID.String(),code)
 
-	user.EmailVerifiedAt = time.Now().Unix()
+	user.EmailVerifiedAt = time.Now()
 	DB.Save(&user)
 
-	Token,err := token.GenerateToken(u.ID)
+	Token,err := token.GenerateToken(user.ID.String())
 	if err != nil {
 		return "",err
 	}
@@ -71,23 +69,19 @@ func Login(DB *gorm.DB,payload *models.LoginInput)(string,error){
 	var user models.User
 	err := DB.Where("email = ?", payload.Email).Where("email_verified_at NOT NULL").First(&user).Error
 	if err != nil{
-		return "",err.Error()
+		return "",err
 	}
 
 	if err := password.VerifyPassword(user.Password,payload.Password); err != nil {
 		return "",err
 	}
 
-	config, _ := initializers.LoadConfig(".")
-
-	Token, err := utils.GenerateToken(config.TokenExpiresIn, user.ID, config.TokenSecret)
+	Token, err := token.GenerateToken(user.ID.String())
 	if err != nil{
 		return "",err
 	}
 
 	return Token,nil
-
-
 
 }
 

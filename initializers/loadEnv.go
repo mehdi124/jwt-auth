@@ -7,12 +7,14 @@ import (
 )
 
 type Config struct {
-	DBHost         string `mapstructure:"POSTGRES_HOST"`
-	DBUserName     string `mapstructure:"POSTGRES_USER"`
-	DBUserPassword string `mapstructure:"POSTGRES_PASSWORD"`
-	DBName         string `mapstructure:"POSTGRES_DB"`
-	DBPort         string `mapstructure:"POSTGRES_PORT"`
-	ServerPort     string `mapstructure:"PORT"`
+	DBDriver         string `mapstructure:"DB_DRIVER"`
+	DBHost         string `mapstructure:"DB_HOST"`
+	DBUserName     string `mapstructure:"DB_USER"`
+	DBUserPassword string `mapstructure:"DB_PASSWORD"`
+	DBName         string `mapstructure:"DB_NAME"`
+	DBPort         string `mapstructure:"DB_PORT"`
+	ServerPort     string `mapstructure:"APP_PORT"`
+	ServerURL     string `mapstructure:"APP_URL"`
 
 	ClientOrigin string `mapstructure:"CLIENT_ORIGIN"`
 

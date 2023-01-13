@@ -5,7 +5,6 @@ import (
 	"log"
 	"os"
 	"github.com/jinzhu/gorm"
-	"github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 )
 

@@ -11,7 +11,7 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-func GenerateToken(user_id uint)(string,error){
+func GenerateToken(user_id string)(string,error){
 
 	token_lifespan,err := strconv.Atoi(os.Getenv("TOKEN_HOUR_LIFESPAN"))
 
@@ -29,18 +29,38 @@ func GenerateToken(user_id uint)(string,error){
 
 }
 
-func TokenValid(c *gin.Context) error {
-	tokenString := ExtractToken(c)
-	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+//func TokenValid(c *gin.Context) error {
+//	tokenString := ExtractToken(c)
+//	_, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+//		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+//			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+//		}
+//		return []byte(os.Getenv("API_SECRET")), nil
+//	})
+//	if err != nil {
+//		return err
+//	}
+//	return nil
+//}
+
+func ValidateToken(token string, signedJWTKey string) (interface{}, error) {
+	tok, err := jwt.Parse(token, func(jwtToken *jwt.Token) (interface{}, error) {
+		if _, ok := jwtToken.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected method: %s", jwtToken.Header["alg"])
 		}
-		return []byte(os.Getenv("API_SECRET")), nil
+
+		return []byte(signedJWTKey), nil
 	})
 	if err != nil {
-		return err
+		return nil, fmt.Errorf("invalidate token: %w", err)
 	}
-	return nil
+
+	claims, ok := tok.Claims.(jwt.MapClaims)
+	if !ok || !tok.Valid {
+		return nil, fmt.Errorf("invalid token claim")
+	}
+
+	return claims["user_id"], nil
 }
 
 func ExtractToken(c *gin.Context) string {

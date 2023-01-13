@@ -32,7 +32,6 @@ func (cli *CLI) Run() {
 
 
 	getMigrateCmdAction := getMigrateCmd.String("db", "", "the action for migrate operation")
-	getServeCmdPort := getServeCmd.String("port", "", "the port for serving")
 
 	switch os.Args[1] {
 	case "migrate":
@@ -59,11 +58,7 @@ func (cli *CLI) Run() {
 	}
 
 	if getServeCmd.Parsed() {
-		if *getServeCmdPort == "" {
-			getServeCmd.Usage()
-			os.Exit(1)
-		}
-		cli.Serve(*getServeCmdPort)
+		cli.Serve()
 	}
 
 

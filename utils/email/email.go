@@ -9,14 +9,14 @@ import (
 	"path/filepath"
 
 	"github.com/k3a/html2text"
-	"github.com/wpcodevo/golang-gorm-postgres/initializers"
-	"github.com/wpcodevo/golang-gorm-postgres/models"
+	"jwt-auth/initializers"
+	"jwt-auth/models"
 	"gopkg.in/gomail.v2"
 )
 
 type EmailData struct {
-	URL       string
-	FirstName string
+	Code       string
+	Email string
 	Subject   string
 }
 

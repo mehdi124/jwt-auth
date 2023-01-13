@@ -4,12 +4,9 @@ import (
 	"jwt-auth/helpers"
 	"net/http"
 	"strings"
-	"time"
-
 	"github.com/gin-gonic/gin"
-	"github.com/thanhpk/randstr"
 	"jwt-auth/models"
-	"gorm.io/gorm"
+	"github.com/jinzhu/gorm"
 )
 
 type AuthController struct{
@@ -58,11 +55,14 @@ func (ac *AuthController) Verify(ctx *gin.Context) {
 		return
 	}
 
-	token,err := helpers.Verify(ac.DB,&user,payload)
+	token,err := helpers.Verify(ac.DB,&user,payload.Code)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "error", "message": "Something bad happened"})
 		return
 	}
+
+	//TODO expire time is not dynamic
+	ctx.SetCookie("token", token, 60*60, "/", "localhost", false, true)
 
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "token": token})
 }
@@ -84,7 +84,16 @@ func (ac *AuthController) Login(ctx *gin.Context) {
 		return
 	}
 
+	//TODO expire time is not dynamic
+	ctx.SetCookie("token", token, 60*60, "/", "localhost", false, true)
+
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "token": token})
+}
+
+func (ac *AuthController) Logout(ctx *gin.Context) {
+
+	ctx.SetCookie("token", "", -1, "/", "localhost", false, true)
+	ctx.JSON(http.StatusOK, gin.H{"status": "success"})
 
 }
 
