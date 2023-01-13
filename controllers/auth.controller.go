@@ -21,7 +21,8 @@ func (ac *AuthController) Register(ctx *gin.Context){
 
 	var payload *models.RegisterInput
 
-	if err := ctx.ShouldBindJSON(payload); err != nil {
+
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
 		return
 	}
@@ -30,6 +31,7 @@ func (ac *AuthController) Register(ctx *gin.Context){
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Passwords do not match"})
 		return
 	}
+
 
 	message,err := helpers.Register(ac.DB,payload)
 	if err != nil && strings.Contains(err.Error(), "duplicate key value violates unique") {

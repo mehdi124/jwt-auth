@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"jwt-auth/initializers"
 	"os"
 	"log"
 	"jwt-auth/models"
@@ -21,8 +22,13 @@ func (cli *CLI) Migrate(action string){
 
 func Fresh(){
 
-	db := models.ConnectDatabase()
-	db.DropTable(&models.User{})//TODO set dynamic inputs
-	models.MigrateModels()
+	config,err := initializers.LoadConfig(".")
+	if err != nil{
+		log.Panic(err)
+	}
+
+	initializers.ConnectDB(&config)
+	initializers.DB.DropTable(&models.User{})//TODO set dynamic inputs
+	initializers.MigrateModels()
 
 }

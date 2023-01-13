@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"fmt"
+	"jwt-auth/models"
 	"log"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
@@ -20,5 +21,10 @@ func ConnectDB(config *Config) {
 	}else {
 		fmt.Println("We are connected to the database ", config.DBDriver)
 	}
+}
+
+func MigrateModels(){
+
+	DB.AutoMigrate(&models.User{})
 
 }

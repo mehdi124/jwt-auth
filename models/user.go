@@ -1,14 +1,13 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"time"
 )
 
 type User struct {
-	ID  uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4();primary_key"`
-	Email string `gorm:"size:255;not null;unique" json:"email"`
-	Password string `gorm:"size:255;not null;" json:"password"`
+	ID        uint    `json:"id" gorm:"autoIncrement; primaryKey"`
+	Email   string    `gorm:"uniqueIndex;not null"`
+	Password  string    `gorm:"not null"`
 	Status bool `gorm:"default:false"`
 	EmailVerifiedAt time.Time
 	CreatedAt time.Time `gorm:"autoCreateTime"`
@@ -22,7 +21,7 @@ type LoginInput struct {
 }
 
 type RegisterInput struct {
-	Email string `json:"email" binding:"email,required"`
+	Email string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required"`
 	ConfirmPassword string `json:"confirm_password" binding:"required"`
 }
@@ -33,7 +32,7 @@ type VerifyInput struct {
 }
 
 type UserResponse struct {
-	ID        uuid.UUID `json:"id,omitempty"`
+	ID        uint `json:"id,omitempty"`
 	Name      string    `json:"name,omitempty"`
 	Email     string    `json:"email,omitempty"`
 	Role      string    `json:"role,omitempty"`

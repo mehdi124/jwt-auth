@@ -34,7 +34,7 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 
 	// Generate Verification Code
 	code := string(rand.Intn(999999 - 100000) + 100000)
-	redis.StoreVerificationCode(user.ID.String(),code)
+	redis.StoreVerificationCode(user.ID,code)
 
 	// ? Send Email
 	emailData := email.EmailData{
@@ -51,12 +51,12 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 }
 
 func Verify(DB *gorm.DB,user *models.User,code string) (string,error) {
-	redis.CheckVerificationCode(user.ID.String(),code)
+	redis.CheckVerificationCode(user.ID,code)
 
 	user.EmailVerifiedAt = time.Now()
 	DB.Save(&user)
 
-	Token,err := token.GenerateToken(user.ID.String())
+	Token,err := token.GenerateToken(user.ID)
 	if err != nil {
 		return "",err
 	}
@@ -76,7 +76,7 @@ func Login(DB *gorm.DB,payload *models.LoginInput)(string,error){
 		return "",err
 	}
 
-	Token, err := token.GenerateToken(user.ID.String())
+	Token, err := token.GenerateToken(user.ID)
 	if err != nil{
 		return "",err
 	}
