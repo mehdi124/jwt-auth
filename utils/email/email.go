@@ -63,6 +63,7 @@ func SendEmail(user *models.User, data *EmailData) {
 		log.Fatal("Could not parse template", err)
 	}
 
+	log.Println(data)
 	template.ExecuteTemplate(&body, "verificationCode.html", &data)
 
 	m := gomail.NewMessage()

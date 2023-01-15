@@ -6,7 +6,7 @@ import (
 
 type User struct {
 	ID        uint    `json:"id" gorm:"autoIncrement; primaryKey"`
-	Email   string    `gorm:"uniqueIndex;not null"`
+	Email   string    `gorm:"unique;index;not null"`
 	Password  string    `gorm:"not null"`
 	Status bool `gorm:"default:false"`
 	EmailVerifiedAt time.Time
@@ -27,7 +27,7 @@ type RegisterInput struct {
 }
 
 type VerifyInput struct {
-	Email string `json:"email" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
 	Code string `json:"code" binding:"required"`
 }
 

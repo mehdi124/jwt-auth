@@ -3,6 +3,7 @@ package helpers
 import (
 	"html"
 	"time"
+	"log"
 	"strings"
 	"jwt-auth/models"
 	"jwt-auth/utils/email"
@@ -10,35 +11,58 @@ import (
 	"github.com/jinzhu/gorm"
 	"jwt-auth/utils/redis"
 	"math/rand"
+	"strconv"
 	"jwt-auth/utils/token"
+	"errors"
 )
 
 func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 
-	hashedPassword, err := password.HashPassword(payload.Password)
-	if err != nil {
-		return "",err
+	user := models.User{}
+	err := DB.Where("email = ?",payload.Email).First(&user).Error
+
+	if !user.EmailVerifiedAt.IsZero() {
+		return "", errors.New("user not exist")
 	}
 
-	user := models.User{}
-	user.Password = string(hashedPassword)
-	//remove spaces in email
-	user.Email = html.EscapeString(strings.TrimSpace(user.Email))
 
+	hashedPassword, Err := password.HashPassword(payload.Password)
+	if Err != nil {
+		return "",Err
+	}
 
-	err = DB.Select("Email","Password").Create(&user).Error
-	if err != nil {
-		return "",err
+	//record not found
+	if err != nil{
+
+		user.Password = string(hashedPassword)
+		//remove spaces in email
+		user.Email = html.EscapeString(strings.TrimSpace(payload.Email))
+
+		err = DB.Select("Email","Password").Create(&user).Error
+		if err != nil {
+			return "",err
+		}
+
+	}else{
+
+		user.Password = string(hashedPassword)
+
+		err = DB.Select("Password").Save(&user).Error
+		if err != nil {
+			return "",err
+		}
+
 	}
 
 
 	// Generate Verification Code
-	code := string(rand.Intn(999999 - 100000) + 100000)
-	redis.StoreVerificationCode(user.ID,code)
+	code := rand.Intn(999999 - 100000) + 100000
+	Code := strconv.Itoa(code)
+	redis.StoreVerificationCode(user.ID,Code)
 
 	// ? Send Email
 	emailData := email.EmailData{
-		Code:      code,
+		Code:      Code,
 		Email: user.Email,
 		Subject:   "verification code",
 	}
@@ -54,10 +78,15 @@ func Verify(DB *gorm.DB,user *models.User,code string) (string,error) {
 	redis.CheckVerificationCode(user.ID,code)
 
 	user.EmailVerifiedAt = time.Now()
-	DB.Save(&user)
+	err := DB.Select("EmailVerifiedAt").Save(&user).Error
+	if err != nil {
+		log.Panic(err)
+		return "",err
+	}
 
 	Token,err := token.GenerateToken(user.ID)
 	if err != nil {
+		log.Panic(err)
 		return "",err
 	}
 

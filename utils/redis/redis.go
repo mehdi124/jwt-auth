@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"log"
 	"context"
 	"github.com/go-redis/redis/v8"
 	"time"
@@ -18,7 +19,7 @@ func StoreVerificationCode(user_id uint,code string){
 	})
 
 	u_id := strconv.Itoa(int(user_id))
-	err := rdb.Set(ctx, "verification_user_id_"+ u_id, code, 10 * time.Second).Err()
+	err := rdb.Set(ctx, "verification_user_id_"+ u_id, code, 10 * time.Minute).Err()
 	if err != nil {
 		panic(err)
 	}
@@ -35,6 +36,7 @@ func CheckVerificationCode(user_id uint,code string){
 
 	u_id := strconv.Itoa(int(user_id))
 	val, err := rdb.Get(ctx, "verification_user_id_"+ u_id ).Result()
+	log.Println(val,u_id,"verification_user_id_"+ u_id)
 	if err != nil {
 		panic(err)
 	}

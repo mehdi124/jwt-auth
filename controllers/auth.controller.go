@@ -49,14 +49,20 @@ func (ac *AuthController) Register(ctx *gin.Context){
 func (ac *AuthController) Verify(ctx *gin.Context) {
 
 	var payload *models.VerifyInput
-	var user models.User
 
-	result := ac.DB.Where("email = ?", payload.Email).Where("email_verified_at IS NULL").First(&user)
-	if result.Error != nil {
+	if err := ctx.ShouldBindJSON(&payload); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": err.Error()})
+		return
+	}
+
+	user := models.User{}
+	err := ac.DB.Where("email = ? AND email_verified_at IS NULL",payload.Email).First(&user).Error
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"status": "fail", "message": "Invalid verification code or user doesn't exists"})
 		return
 	}
 
+	//log.Println(user,"ssss")
 	token,err := helpers.Verify(ac.DB,&user,payload.Code)
 	if err != nil {
 		ctx.JSON(http.StatusBadGateway, gin.H{"status": "error", "message": "Something bad happened"})
