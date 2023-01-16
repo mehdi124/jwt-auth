@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	//"jwt-auth/initializers"
 
 	"github.com/gin-gonic/gin"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,16 +14,20 @@ import (
 
 func GenerateToken(user_id uint)(string,error){
 
-	token_lifespan,err := strconv.Atoi(os.Getenv("TOKEN_HOUR_LIFESPAN"))
-
-	if err != nil {
-		return "",err
+	//config,err := initializers.LoadConfig(".")
+	//if err != nil {
+	//	return "",err
+	//}
+	//TODO check what matter with this shit
+	lifetime,Err := strconv.Atoi("1")
+	if Err != nil {
+		return "",Err
 	}
 
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
 	claims["user_id"] = user_id
-	claims["exp"] = time.Now().Add(time.Hour * time.Duration(token_lifespan)).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * time.Duration( lifetime )).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	return token.SignedString([]byte(os.Getenv("API_SECRET")))

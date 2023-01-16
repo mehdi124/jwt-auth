@@ -2,8 +2,8 @@ package helpers
 
 import (
 	"html"
+	"jwt-auth/utils/taskq"
 	"time"
-	"log"
 	"strings"
 	"jwt-auth/models"
 	"jwt-auth/utils/email"
@@ -56,6 +56,7 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 
 
 	// Generate Verification Code
+	rand.Seed(time.Now().UnixNano())
 	code := rand.Intn(999999 - 100000) + 100000
 	Code := strconv.Itoa(code)
 	redis.StoreVerificationCode(user.ID,Code)
@@ -69,6 +70,15 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 
 	email.SendEmail(&user, &emailData)
 
+	q := taskq.NewQueue(3, 4, func(job interface{}) {
+		
+	})
+	go q.StartWorkers()
+	q.EnqueueJobBlocking(email.SendEmail(&user,&emailData))
+
+
+	time.Sleep(time.Second * 10)
+
 	message := "We sent an email with a verification code to " + user.Email
 
 	return message,nil
@@ -77,19 +87,22 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 func Verify(DB *gorm.DB,user *models.User,code string) (string,error) {
 	redis.CheckVerificationCode(user.ID,code)
 
+	tx := DB.Begin()
+
 	user.EmailVerifiedAt = time.Now()
-	err := DB.Select("EmailVerifiedAt").Save(&user).Error
+	err := tx.Select("EmailVerifiedAt").Save(&user).Error
 	if err != nil {
-		log.Panic(err)
+		tx.Rollback()
 		return "",err
 	}
 
 	Token,err := token.GenerateToken(user.ID)
 	if err != nil {
-		log.Panic(err)
+		tx.Rollback()
 		return "",err
 	}
 
+	tx.Commit()
 	return Token,nil
 }
 

@@ -16,6 +16,8 @@ type Config struct {
 	ServerPort     string `mapstructure:"APP_PORT"`
 	ServerURL     string `mapstructure:"APP_URL"`
 
+	TokenHourLifeSpan     string `TOKEN_HOUR_LIFESPAN:"TOKEN_HOUR_LIFESPAN"`
+
 	ClientOrigin string `mapstructure:"CLIENT_ORIGIN"`
 
 	TokenSecret    string        `mapstructure:"TOKEN_SECRET"`
