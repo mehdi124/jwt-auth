@@ -2,8 +2,8 @@ package helpers
 
 import (
 	"html"
-	"jwt-auth/utils/taskq"
 	"time"
+	"log"
 	"strings"
 	"jwt-auth/models"
 	"jwt-auth/utils/email"
@@ -69,15 +69,6 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 	}
 
 	email.SendEmail(&user, &emailData)
-
-	q := taskq.NewQueue(3, 4, func(job interface{}) {
-		
-	})
-	go q.StartWorkers()
-	q.EnqueueJobBlocking(email.SendEmail(&user,&emailData))
-
-
-	time.Sleep(time.Second * 10)
 
 	message := "We sent an email with a verification code to " + user.Email
 
