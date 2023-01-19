@@ -10,6 +10,18 @@ import (
 
 var ctx = context.Background()
 
+func NewClient() (*redis.Client){
+
+	rdb := redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	return rdb
+}
+
+
 func StoreVerificationCode(user_id uint,code string){
 
 	rdb := redis.NewClient(&redis.Options{

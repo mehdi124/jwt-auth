@@ -24,6 +24,7 @@ require (
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/k3a/html2text v1.1.0 // indirect
+	github.com/keithwachira/go-taskq v0.0.0-20220822092758-2a6b3be818cb // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/magiconair/properties v1.8.6 // indirect
 	github.com/mattn/go-isatty v0.0.16 // indirect

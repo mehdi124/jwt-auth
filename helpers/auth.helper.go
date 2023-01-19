@@ -3,7 +3,6 @@ package helpers
 import (
 	"html"
 	"time"
-	"log"
 	"strings"
 	"jwt-auth/models"
 	"jwt-auth/utils/email"
@@ -15,6 +14,15 @@ import (
 	"jwt-auth/utils/token"
 	"errors"
 )
+
+func Test(){
+	emailData := email.EmailData{
+		Code:      "1234",
+		Email: "admin@admin.com",
+		Subject:   "verification code",
+	}
+	email.RunSendEmailJob(emailData,"register")
+}
 
 func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 

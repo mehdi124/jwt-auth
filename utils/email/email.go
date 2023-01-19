@@ -1,25 +1,22 @@
 package email
 
 import (
+	"encoding/json"
 	"bytes"
 	"crypto/tls"
 	"html/template"
 	"log"
 	"os"
 	"path/filepath"
+	"context"
 
 	"github.com/k3a/html2text"
 	"jwt-auth/initializers"
+	Redis "jwt-auth/utils/redis"
+	"github.com/go-redis/redis/v8"
 	"jwt-auth/models"
 	"gopkg.in/gomail.v2"
 )
-
-type EmailData struct {
-	Code       string
-	Email string
-	Subject   string
-}
-
 // ? Email template parser
 
 func ParseTemplateDir(dir string) (*template.Template, error) {
@@ -82,5 +79,31 @@ func SendEmail(user *models.User, data *EmailData) {
 		log.Fatal("Could not send email: ", err)
 	}
 
+}
+
+func RunSendEmailJob(data interface{},emailTemplate string) {
+
+	D,_ := json.Marshal(data)
+	Data := map[string]interface{}{ "value": string(D) , "template" : emailTemplate }
+
+	rdq := Redis.NewClient()
+	err := rdq.XAdd(context.Background(), &redis.XAddArgs{
+		///this is the name we want to give to our stream
+		///in our case we called it send_order_emails
+		//note you can have as many stream as possible
+		//such as one for email...another for notifications
+		Stream:       streamName,
+		MaxLen:       0,
+		MaxLenApprox: 0,
+		ID:           "",
+		//values is the data you want to send to the stream
+		//in our case we send a map with email and message keys
+		Values: Data,
+	}).Err()
+	if err != nil {
+		log.Fatal( err)
+		return
+	}
+	log.Println("email sending in background")
 }
 

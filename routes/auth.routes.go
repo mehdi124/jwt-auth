@@ -17,6 +17,7 @@ func NewAuthRouteController(authController controllers.AuthController) AuthRoute
 func (rc *AuthRouteController) AuthRoute(rg *gin.RouterGroup) {
 	router := rg.Group("/auth")
 
+	router.GET("/test", rc.authController.Test)
 	router.POST("/register", rc.authController.Register)
 	router.POST("/login", rc.authController.Login)
 	router.DELETE("/logout", middlewares.JwtAuthMiddleware(), rc.authController.Logout)
