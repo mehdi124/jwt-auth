@@ -12,33 +12,6 @@ import (
 
 var streamName = "send_emails"
 
-
-
-
-//func NewEmailReceivedFromClient(data interface{}) {
-//
-//	rdq := Redis.NewClient()
-//	err := rdq.XAdd(context.Background(), &redis.XAddArgs{
-//		///this is the name we want to give to our stream
-//		///in our case we called it send_order_emails
-//		//note you can have as many stream as possible
-//		//such as one for email...another for notifications
-//		Stream:       streamName,
-//		MaxLen:       0,
-//		MaxLenApprox: 0,
-//		ID:           "",
-//		//values is the data you want to send to the stream
-//		//in our case we send a map with email and message keys
-//		Values: data,
-//	}).Err()
-//	if err != nil {
-//		log.Fatal("failed ")
-//		return
-//	}
-//	fmt.Fprintf(w, `We received you order`)
-//}
-
-
 type RedisStreamsProcessing struct {
 	Redis *redis.Client
 	//other dependencies e.g. logger database goes here
@@ -56,13 +29,11 @@ func (r *RedisStreamsProcessing) Process(job interface{}) {
 		var emailData EmailData
 		json.Unmarshal([]byte( messageValue ),&emailData)
 
-		fmt.Printf("I am sending an email to the email  %v and type is  %T  %v \n ", data,emailData.Email,emailTemplate)
-		//here we can decide to delete each entry when it is processed
-		//in that case you can use the redis xdel command i.e:
-
 		SendEmail(&emailData,emailTemplate.(string))
 
 		//TODO handle job failed and success jobs for repeat or delete
+		//here we can decide to delete each entry when it is processed
+		//in that case you can use the redis xdel command i.e:
 		r.Redis.XDel(context.Background(),streamName,data.ID).Err()
 
 
