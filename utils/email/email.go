@@ -14,7 +14,6 @@ import (
 	"jwt-auth/initializers"
 	Redis "jwt-auth/utils/redis"
 	"github.com/go-redis/redis/v8"
-	"jwt-auth/models"
 	"gopkg.in/gomail.v2"
 )
 // ? Email template parser
@@ -38,7 +37,7 @@ func ParseTemplateDir(dir string) (*template.Template, error) {
 	return template.ParseFiles(paths...)
 }
 
-func SendEmail(user *models.User, data *EmailData) {
+func SendEmail(data *EmailData,templateType string) {
 	config, err := initializers.LoadConfig(".")
 
 	if err != nil {
@@ -49,7 +48,7 @@ func SendEmail(user *models.User, data *EmailData) {
 	from := config.EmailFrom
 	smtpPass := config.SMTPPass
 	smtpUser := config.SMTPUser
-	to := user.Email
+	to := data.Email
 	smtpHost := config.SMTPHost
 	smtpPort := config.SMTPPort
 
@@ -61,7 +60,9 @@ func SendEmail(user *models.User, data *EmailData) {
 	}
 
 	log.Println(data)
-	template.ExecuteTemplate(&body, "verificationCode.html", &data)
+	emailTemplateFile := checkEmailType(templateType)
+
+	template.ExecuteTemplate(&body, emailTemplateFile, &data)
 
 	m := gomail.NewMessage()
 

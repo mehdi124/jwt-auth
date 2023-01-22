@@ -16,11 +16,12 @@ import (
 )
 
 func Test(){
-	emailData := email.EmailData{
-		Code:      "1234",
-		Email: "admin@admin.com",
-		Subject:   "verification code",
-	}
+	emailData := email.EmailData{}
+	emailData.Email = "admin@admin.com"
+	emailData.Subject = "verification code"
+	emailData.Data = make(map[string]string)
+	emailData.Data["Code"] = "1234"
+
 	email.RunSendEmailJob(emailData,"register")
 }
 
@@ -70,14 +71,13 @@ func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 	redis.StoreVerificationCode(user.ID,Code)
 
 	// ? Send Email
-	emailData := email.EmailData{
-		Code:      Code,
-		Email: user.Email,
-		Subject:   "verification code",
-	}
+	emailData := email.EmailData{}
+	emailData.Email = user.Email
+	emailData.Subject = "register verification code"
+	emailData.Data = make(map[string]string)
+	emailData.Data["Code"] = Code
 
-	email.SendEmail(&user, &emailData)
-
+	email.RunSendEmailJob(emailData,"register")
 	message := "We sent an email with a verification code to " + user.Email
 
 	return message,nil

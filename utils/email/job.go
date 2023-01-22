@@ -7,7 +7,6 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/keithwachira/go-taskq"
 	"encoding/json"
-	"reflect"
 )
 
 
@@ -50,15 +49,21 @@ func (r *RedisStreamsProcessing) Process(job interface{}) {
 	//the go redis client returns the redis stream data as type [redis.XMessage]
 	if data, ok := job.(redis.XMessage); ok {
 
-		test := data.Values["value"]
-		d , _ :=  test.(string)
-		var t interface{}
-		json.Unmarshal([]byte( d ),&t)
+		emailTemplate := data.Values["template"]
 
-		fmt.Printf("I am sending an email to the email  %v and type is  %T  %v \n ", data,t,t.Values())
+		message := data.Values["value"]
+		messageValue , _ :=  message.(string)
+		var emailData EmailData
+		json.Unmarshal([]byte( messageValue ),&emailData)
+
+		fmt.Printf("I am sending an email to the email  %v and type is  %T  %v \n ", data,emailData.Email,emailTemplate)
 		//here we can decide to delete each entry when it is processed
 		//in that case you can use the redis xdel command i.e:
-		///rdq.XDel(context.Background(),streamName,data.ID).Err()
+
+		SendEmail(&emailData,emailTemplate.(string))
+
+		//TODO handle job failed and success jobs for repeat or delete
+		r.Redis.XDel(context.Background(),streamName,data.ID).Err()
 
 
 	} else {
