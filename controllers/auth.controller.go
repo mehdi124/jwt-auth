@@ -17,12 +17,12 @@ func NewAuthController(DB *gorm.DB) AuthController {
 	return AuthController{ DB:DB }
 }
 
-func (ac *AuthController) Test(ctx *gin.Context){
-
-	helpers.Test()
-	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "test"})
-
-}
+//func (ac *AuthController) Test(ctx *gin.Context){
+//
+//	helpers.Test()
+//	ctx.JSON(http.StatusCreated, gin.H{"status": "success", "message": "test"})
+//
+//}
 
 func (ac *AuthController) Register(ctx *gin.Context){
 

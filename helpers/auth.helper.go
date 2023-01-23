@@ -15,15 +15,15 @@ import (
 	"errors"
 )
 
-func Test(){
-	emailData := email.EmailData{}
-	emailData.Email = "admin@admin.com"
-	emailData.Subject = "verification code"
-	emailData.Data = make(map[string]string)
-	emailData.Data["Code"] = "1234"
-
-	email.RunSendEmailJob(emailData,"register")
-}
+//func Test(){
+//	emailData := email.EmailData{}
+//	emailData.Email = "admin@admin.com"
+//	emailData.Subject = "verification code"
+//	emailData.Data = make(map[string]string)
+//	emailData.Data["Code"] = "1234"
+//
+//	email.RunSendEmailJob(emailData,"register")
+//}
 
 func Register(DB *gorm.DB,payload *models.RegisterInput) (string,error) {
 
